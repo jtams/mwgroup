@@ -25,13 +25,13 @@ import (
 func main() {
 	app := fiber.New()
 
-	private := mwgroup.NewMiddlewareGroup(app, "/api/v1")
+	private := mwgroup.New(app, "/api/v1")
 	private.Use(middlewares.RequestLogger(), middlewares.RequireAuth())
 	private.Get("/me", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{"user": "jtams"})
 	})
 
-	public := mwgroup.NewMiddlewareGroup(app, "/api/v1")
+	public := mwgroup.New(app, "/api/v1")
 	public.Use(middlewares.RequestLogger())
     // With Fiber's router, public would also include the RequireAuth middleware
 	public.Get("/status", func(c fiber.Ctx) error {
@@ -45,7 +45,7 @@ func main() {
 
 ## Documentation
 
-`mwgroup.NewMiddlewareGroup` returns the router wrapper: `*mwgroup.MiddlewareGroup`
+`mwgroup.New` returns the router wrapper: `*mwgroup.MiddlewareGroup`
 
 `mwgroup.MiddlewareGroup` includes HTTP methods: `Get`, `Head`, `Post`, `Put`, `Delete`, `Connect`, `Options`, `Trace`, and `Patch`. Also include `All` to match all. They all follow the same pattern as Fiber: `group.Get(path string, handler any, extra ...any)`
 
