@@ -3,6 +3,8 @@
 package mwgroup
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v3"
 )
 
@@ -16,8 +18,8 @@ type MiddlewareGroup struct {
 // It behaves like Fiber's app.Group(prefix) for routing purposes,
 func New(app *fiber.App, prefix string, handlers ...any) *MiddlewareGroup {
 	return &MiddlewareGroup{
-		router: app,
-		prefix: prefix,
+		router: app.Group(prefix),
+		prefix: joinPrefix("", prefix),
 		mw:     append([]any{}, handlers...),
 	}
 }
@@ -43,12 +45,32 @@ func (g *MiddlewareGroup) Use(handlers ...any) *MiddlewareGroup {
 	return g
 }
 
+func joinPrefix(base, sub string) string {
+	switch {
+	case base == "" || base == "/":
+		base = ""
+	default:
+		base = strings.TrimSuffix(base, "/")
+	}
+	if sub == "" || sub == "/" {
+		sub = ""
+	} else if !strings.HasPrefix(sub, "/") {
+		sub = "/" + sub
+	}
+	joined := base + sub
+	if joined == "" {
+		return "/"
+	}
+	return joined
+}
+
 // Group creates a nested MiddlewareGroup. Child groups inherit
 // the parent's middleware (applied first) plus any additional
 // handlers
 func (g *MiddlewareGroup) Group(prefix string, handlers ...any) *MiddlewareGroup {
-	sub := g.router.Group(g.prefix + prefix)
-	return newChild(sub, "", g.mw, handlers...)
+	sub := g.router.Group(prefix)
+	full := joinPrefix(g.prefix, prefix)
+	return newChild(sub, full, g.mw, handlers...)
 }
 
 // Builds the final ordered handler list
@@ -68,7 +90,7 @@ func (g *MiddlewareGroup) chain(extraAndHandler []any) (any, []any) {
 // with any extra route-specific middleware before it.
 func (g *MiddlewareGroup) route(methods []string, path string, handlersAndFinal []any) fiber.Router {
 	first, rest := g.chain(handlersAndFinal)
-	return g.router.Add(methods, g.prefix+path, first, rest...)
+	return g.router.Add(methods, path, first, rest...)
 }
 
 // ======== Method Wrappers ========
