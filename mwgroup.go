@@ -14,7 +14,7 @@ type MiddlewareGroup struct {
 
 // Creates a MiddlewareGroup rooted at prefix on app.
 // It behaves like Fiber's app.Group(prefix) for routing purposes,
-func NewMiddlewareGroup(app *fiber.App, prefix string, handlers ...any) *MiddlewareGroup {
+func New(app *fiber.App, prefix string, handlers ...any) *MiddlewareGroup {
 	return &MiddlewareGroup{
 		router: app,
 		prefix: prefix,

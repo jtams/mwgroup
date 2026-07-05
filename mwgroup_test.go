@@ -42,7 +42,7 @@ func doRequest(t *testing.T, app *fiber.App, method, path string) (string, int) 
 
 func TestNewMiddlewareGroup(t *testing.T) {
 	app := fiber.New()
-	g := NewMiddlewareGroup(app, "/api", trailMW("a"))
+	g := New(app, "/api", trailMW("a"))
 
 	if g.Router() != fiber.Router(app) {
 		t.Errorf("Router() = %v, want app", g.Router())
@@ -66,7 +66,7 @@ func TestNewMiddlewareGroup(t *testing.T) {
 
 func TestMiddlewareGroup_Use(t *testing.T) {
 	app := fiber.New()
-	g := NewMiddlewareGroup(app, "/api", trailMW("a"))
+	g := New(app, "/api", trailMW("a"))
 	ret := g.Use(trailMW("b"))
 
 	if ret != g {
@@ -85,7 +85,7 @@ func TestMiddlewareGroup_Use(t *testing.T) {
 
 func TestMiddlewareGroup_Group(t *testing.T) {
 	app := fiber.New()
-	parent := NewMiddlewareGroup(app, "/api", trailMW("parent"))
+	parent := New(app, "/api", trailMW("parent"))
 	parent.Use(trailMW("parent2"))
 	child := parent.Group("/v1", trailMW("child"))
 
@@ -116,7 +116,7 @@ func TestMiddlewareGroup_Group(t *testing.T) {
 
 func TestMiddlewareGroup_GroupIsolation(t *testing.T) {
 	app := fiber.New()
-	base := NewMiddlewareGroup(app, "/shared")
+	base := New(app, "/shared")
 	g1 := base.Group("/one", trailMW("g1"))
 	g2 := base.Group("/two", trailMW("g2"))
 
@@ -185,7 +185,7 @@ func TestMiddlewareGroup_HTTPMethods(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			app := fiber.New()
-			g := NewMiddlewareGroup(app, "/api", trailMW("mw"))
+			g := New(app, "/api", trailMW("mw"))
 			tc.register(g, "/x", trailHandler)
 
 			body, status := doRequest(t, app, tc.method, "/api/x")
@@ -204,7 +204,7 @@ func TestMiddlewareGroup_HTTPMethods(t *testing.T) {
 
 func TestMiddlewareGroup_ExtraPerRouteMiddleware(t *testing.T) {
 	app := fiber.New()
-	g := NewMiddlewareGroup(app, "/api", trailMW("group"))
+	g := New(app, "/api", trailMW("group"))
 	g.Get("/x", trailHandler, trailMW("extra"))
 
 	body, _ := doRequest(t, app, http.MethodGet, "/api/x")
@@ -215,7 +215,7 @@ func TestMiddlewareGroup_ExtraPerRouteMiddleware(t *testing.T) {
 
 func TestMiddlewareGroup_All(t *testing.T) {
 	app := fiber.New()
-	g := NewMiddlewareGroup(app, "/api", trailMW("mw"))
+	g := New(app, "/api", trailMW("mw"))
 	g.All("/x", trailHandler)
 
 	for _, method := range []string{
@@ -234,7 +234,7 @@ func TestMiddlewareGroup_All(t *testing.T) {
 
 func TestMiddlewareGroup_Add(t *testing.T) {
 	app := fiber.New()
-	g := NewMiddlewareGroup(app, "/api", trailMW("mw"))
+	g := New(app, "/api", trailMW("mw"))
 	g.Add([]string{http.MethodGet, http.MethodPost}, "/x", trailHandler)
 
 	body, status := doRequest(t, app, http.MethodGet, "/api/x")
@@ -256,7 +256,7 @@ func TestMiddlewareGroup_Add(t *testing.T) {
 
 func TestMiddlewareGroup_Router(t *testing.T) {
 	app := fiber.New()
-	g := NewMiddlewareGroup(app, "/api")
+	g := New(app, "/api")
 	if g.Router() != fiber.Router(app) {
 		t.Errorf("Router() did not return the underlying app")
 	}
@@ -270,7 +270,7 @@ func TestMiddlewareGroup_Router(t *testing.T) {
 
 func TestMiddlewareGroup_Prefix(t *testing.T) {
 	app := fiber.New()
-	g := NewMiddlewareGroup(app, "/api/v2")
+	g := New(app, "/api/v2")
 	if g.Prefix() != "/api/v2" {
 		t.Errorf("Prefix() = %q, want %q", g.Prefix(), "/api/v2")
 	}
